@@ -115,8 +115,8 @@ def test_accuracy_degradation(train_model, baseline_metrics):
         current_accuracy >= baseline_accuracy
     ), f"モデルの精度がベースラインを下回りました。現在: {current_accuracy:.4f}, ベースライン: {baseline_accuracy:.4f}"
 
-
-def train_model(sample_data, preprocessor):  #
+@pytest.fixture
+def train_model(sample_data, preprocessor): 
     """モデルの学習とテストデータの準備"""
     # データの分割とラベル変換
     X = sample_data.drop("Survived", axis=1)
