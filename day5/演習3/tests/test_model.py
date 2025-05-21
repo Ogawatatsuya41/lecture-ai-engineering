@@ -116,7 +116,7 @@ def test_accuracy_degradation(train_model, baseline_metrics):
     ), f"モデルの精度がベースラインを下回りました。現在: {current_accuracy:.4f}, ベースライン: {baseline_accuracy:.4f}"
 
 
-def train_model(sample_data, preprocessor):
+def train_model(sample_data, preprocessor):  #
     """モデルの学習とテストデータの準備"""
     # データの分割とラベル変換
     X = sample_data.drop("Survived", axis=1)
