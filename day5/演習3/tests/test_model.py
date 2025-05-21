@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import time
+import json
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -16,6 +17,7 @@ from sklearn.pipeline import Pipeline
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Titanic.csv")
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models")
 MODEL_PATH = os.path.join(MODEL_DIR, "titanic_model.pkl")
+BASELINE_METRICS_FILE = os.path.join(MODEL_DIR, "baseline_metrics.json")
 
 
 @pytest.fixture
@@ -71,6 +73,47 @@ def preprocessor():
     )
 
     return preprocessor
+
+
+@pytest.fixture
+def baseline_metrics():
+    """ベースラインのメトリクスをファイルから読み込む"""
+    if not os.path.exists(BASELINE_METRICS_FILE):
+        # ベースラインファイルがない場合、テストをスキップするか、デフォルト値を設定
+        # CIの初期実行ではファイルが存在しない可能性があるため、適切な処理が必要
+        pytest.skip(
+            f"ベースラインメトリクスファイル {BASELINE_METRICS_FILE} が見つかりません。"
+        )
+        # return {"accuracy": 0.0} # あるいはエラーにするなど
+
+    with open(BASELINE_METRICS_FILE, "r") as f:
+        try:
+            metrics = json.load(f)
+            if "accuracy" not in metrics:
+                pytest.fail("ベースラインメトリクスに 'accuracy' が含まれていません。")
+            return metrics
+        except json.JSONDecodeError:
+            pytest.fail(f"{BASELINE_METRICS_FILE} のJSON形式が正しくありません。")
+
+
+@pytest.fixture
+def test_accuracy_degradation(train_model, baseline_metrics):
+    """
+    現在のモデルの精度がベースラインと比較して著しく低下していないか検証する。
+    """
+    model, X_test, y_test = train_model
+    baseline_accuracy = baseline_metrics["accuracy"]
+
+    # 現在のモデルの精度を計算
+    y_pred = model.predict(X_test)
+    current_accuracy = accuracy_score(y_test, y_pred)
+
+    print(f"現在のモデルの精度: {current_accuracy:.4f}")
+    print(f"ベースラインのモデルの精度: {baseline_accuracy:.4f}")
+
+    assert (
+        current_accuracy >= baseline_accuracy
+    ), f"モデルの精度がベースラインを下回りました。現在: {current_accuracy:.4f}, ベースライン: {baseline_accuracy:.4f}"
 
 
 @pytest.fixture
