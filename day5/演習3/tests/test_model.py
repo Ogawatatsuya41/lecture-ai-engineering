@@ -95,6 +95,7 @@ def baseline_metrics():
         except json.JSONDecodeError:
             pytest.fail(f"{BASELINE_METRICS_FILE} のJSON形式が正しくありません。")
 
+
 @pytest.fixture
 def test_accuracy_degradation(train_model, baseline_metrics):
     """
