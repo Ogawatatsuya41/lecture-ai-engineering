@@ -19,6 +19,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models")
 MODEL_PATH = os.path.join(MODEL_DIR, "titanic_model.pkl")
 BASELINE_METRICS_FILE = os.path.join(MODEL_DIR, "baseline_metrics.json")
 
+
 @pytest.fixture
 def sample_data():
     """テスト用データセットを読み込む"""
@@ -80,12 +81,14 @@ def baseline_metrics():
     if not os.path.exists(BASELINE_METRICS_FILE):
         # ベースラインファイルがない場合、テストをスキップするか、デフォルト値を設定
         # CIの初期実行ではファイルが存在しない可能性があるため、適切な処理が必要
-        pytest.skip(f"ベースラインメトリクスファイル {BASELINE_METRICS_FILE} が見つかりません。")
+        pytest.skip(
+            f"ベースラインメトリクスファイル {BASELINE_METRICS_FILE} が見つかりません。"
+        )
         # return {"accuracy": 0.0} # あるいはエラーにするなど
 
     with open(BASELINE_METRICS_FILE, "r") as f:
         try:
-            metrics = json.load(f) 
+            metrics = json.load(f)
             if "accuracy" not in metrics:
                 pytest.fail("ベースラインメトリクスに 'accuracy' が含まれていません。")
             return metrics
@@ -107,8 +110,10 @@ def test_accuracy_degradation(train_model, baseline_metrics):
     print(f"現在のモデルの精度: {current_accuracy:.4f}")
     print(f"ベースラインのモデルの精度: {baseline_accuracy:.4f}")
 
-    assert current_accuracy >= baseline_accuracy, \
-        f"モデルの精度がベースラインを下回りました。現在: {current_accuracy:.4f}, ベースライン: {baseline_accuracy:.4f}"
+    assert (
+        current_accuracy >= baseline_accuracy
+    ), f"モデルの精度がベースラインを下回りました。現在: {current_accuracy:.4f}, ベースライン: {baseline_accuracy:.4f}"
+
 
 def train_model(sample_data, preprocessor):
     """モデルの学習とテストデータの準備"""
